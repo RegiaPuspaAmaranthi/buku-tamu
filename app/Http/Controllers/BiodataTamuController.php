@@ -13,70 +13,54 @@ class BiodataTamuController extends Controller
      */
     public function index()
     {
-        $biodataTamus = BiodataTamu::with('bukuTamu')->get();
-        return view('biodata_tamus.index', compact('biodataTamus'));
+        // Ambil semua tamu, termasuk relasi ke biodata jika ada
+        $bukuTamus = BukuTamu::with('biodata')->latest()->get();
+        return view('biodata_tamus.index', compact('bukuTamus'));
     }
+
 
     /**
      * Menampilkan form untuk menambah biodata tamu.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $bukuTamus = BukuTamu::all();
-        return view('biodata_tamus.create', compact('bukuTamus'));
+        $bukuTamu = BukuTamu::findOrFail($request->buku_tamu_id);
+        return view('biodata_tamus.create', compact('bukuTamu'));
     }
 
-    /**
-     * Menyimpan data biodata tamu ke database.
-     */
     public function store(Request $request)
     {
         $request->validate([
             'buku_tamu_id' => 'required|exists:buku_tamus,id',
-            'permasalahan' => 'nullable|string',
-            'tanggapan' => 'nullable|string',
-            'status' => 'required|in:Belum Selesai,Proses,Selesai',
+            'permasalahan' => 'required',
+            'tanggapan' => 'required',
+            'status' => 'required',
         ]);
 
         BiodataTamu::create($request->all());
 
-        return redirect()->route('biodata-tamus.index')->with('success', 'Biodata tamu berhasil ditambahkan.');
+        return redirect()->route('biodata-tamus.index')->with('success', 'Biodata berhasil disimpan.');
     }
 
-    /**
-     * Menampilkan detail biodata tamu.
-     */
-    public function show(BiodataTamu $biodataTamu)
+    public function edit($id)
     {
-        return view('biodata_tamus.show', compact('biodataTamu'));
+        $biodata = BiodataTamu::with('bukuTamu')->findOrFail($id);
+        return view('biodata_tamus.edit', compact('biodata'));
     }
 
-    /**
-     * Menampilkan form untuk mengedit biodata tamu.
-     */
-    public function edit(BiodataTamu $biodataTamu)
-    {
-        $bukuTamus = BukuTamu::all();
-        return view('biodata_tamus.edit', compact('biodataTamu', 'bukuTamus'));
-    }
-
-    /**
-     * Mengupdate data biodata tamu.
-     */
-    public function update(Request $request, BiodataTamu $biodataTamu)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'buku_tamu_id' => 'required|exists:buku_tamus,id',
-            'permasalahan' => 'nullable|string',
-            'tanggapan' => 'nullable|string',
-            'status' => 'required|in:Belum Selesai,Proses,Selesai',
+            'permasalahan' => 'required',
+            'tanggapan' => 'required',
+            'status' => 'required',
         ]);
 
-        $biodataTamu->update($request->all());
+        $biodata = BiodataTamu::findOrFail($id);
+        $biodata->update($request->all());
 
-        return redirect()->route('biodata-tamus.index')->with('success', 'Biodata tamu berhasil diperbarui.');
+        return redirect()->route('biodata-tamus.index')->with('success', 'Biodata berhasil diperbarui.');
     }
-
     /**
      * Menghapus biodata tamu dari database.
      */
@@ -85,4 +69,6 @@ class BiodataTamuController extends Controller
         $biodataTamu->delete();
         return redirect()->route('biodata-tamus.index')->with('success', 'Biodata tamu berhasil dihapus.');
     }
+    
+
 }

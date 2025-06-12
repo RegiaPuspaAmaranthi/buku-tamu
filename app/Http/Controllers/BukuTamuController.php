@@ -76,7 +76,7 @@ class BukuTamuController extends Controller
             'nama' => 'required|string|max:255',
             'instansi' => 'nullable|string|max:255',
             'keperluan' => 'required|string',
-            'nomor_telepon' => 'nullable|numeric|digits_between:10,15',
+            'no_hp' => 'nullable|string|max:20',
             'tanggal' => 'required|date',
         ]);
 

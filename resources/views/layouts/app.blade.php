@@ -18,19 +18,24 @@
                     @guest
                         <!-- Tampil jika belum login -->
                         <li class="nav-item">
-                            <a class="nav-link active" href="{{ route('buku-tamus.create') }}">Buku Tamu</a>
+                            <a class="nav-link" href="{{ route('buku-tamus.create') }}">Isi Buku Tamu</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('login') }}">Login</a>
                         </li>
                     @else
-                        <!-- Tampil jika admin sudah login -->
+                        <!-- Tampil jika admin login -->
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('buku-tamus.index') }}">Data Tamu</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('logout') }}"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <a class="nav-link" href="{{ route('biodata-tamus.index') }}">Biodata Tamu</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('rekapan.index') }}">Rekapan Tamu</a>
+                        </li> 
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 Logout
                             </a>
                         </li>

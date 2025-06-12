@@ -16,4 +16,9 @@ class BiodataTamu extends Model
     {
         return $this->belongsTo(BukuTamu::class, 'buku_tamu_id');
     }
+
+    public function rekapan()
+    {
+        return $this->hasOne(RekapanTamu::class, 'biodata_tamu_id');
+    }
 }

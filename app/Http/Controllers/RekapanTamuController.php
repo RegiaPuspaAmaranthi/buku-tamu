@@ -3,89 +3,90 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\RekapanTamu;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Models\BukuTamu;
 use App\Models\BiodataTamu;
 
 class RekapanTamuController extends Controller
 {
-    /**
-     * Menampilkan daftar rekapan tamu.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $rekapanTamus = RekapanTamu::with(['bukuTamu', 'biodataTamu'])->get();
-        return view('rekapan_tamus.index', compact('rekapanTamus'));
+        $tipe = $request->input('tipe_data', 'buku');
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
+        $data = [];
+
+        if ($tipe === 'buku') {
+            $query = BukuTamu::query();
+        } else {
+            $query = BiodataTamu::with('bukuTamu');
+        }
+
+        if ($tanggalAwal && $tanggalAkhir) {
+            $query->whereBetween('created_at', [$tanggalAwal, $tanggalAkhir]);
+        }
+
+        $data = $query->get();
+
+        return view('rekapan.index', compact('data', 'tipe', 'tanggalAwal', 'tanggalAkhir'));
     }
 
-    /**
-     * Menampilkan form untuk menambah rekapan tamu baru.
-     */
-    public function create()
+    public function export(Request $request)
     {
-        $bukuTamus = BukuTamu::all();
-        $biodataTamus = BiodataTamu::all();
-        return view('rekapan_tamus.create', compact('bukuTamus', 'biodataTamus'));
-    }
+        $tipe = $request->input('tipe_data');
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+        $filenameInput = $request->input('filename');
 
-    /**
-     * Menyimpan data rekapan tamu ke database.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'buku_tamu_id' => 'required|exists:buku_tamus,id',
-            'biodata_tamu_id' => 'required|exists:biodata_tamus,id',
-            'tanggal_kunjungan' => 'required|date',
-            'status' => 'required|in:Belum Selesai,Proses,Selesai',
-        ]);
+        if ($tipe === 'buku') {
+            $query = BukuTamu::query();
+        } elseif ($tipe === 'biodata') {
+            $query = BiodataTamu::with('bukuTamu');
+        } else {
+            return back()->with('error', 'Tipe data tidak valid.');
+        }
 
-        RekapanTamu::create($request->all());
+        if ($tanggalAwal && $tanggalAkhir) {
+            $query->whereBetween('created_at', [$tanggalAwal, $tanggalAkhir]);
+        }
 
-        return redirect()->route('rekapan-tamus.index')->with('success', 'Rekapan tamu berhasil ditambahkan.');
-    }
+        $data = $query->get();
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
-    /**
-     * Menampilkan detail rekapan tamu.
-     */
-    public function show(RekapanTamu $rekapanTamu)
-    {
-        return view('rekapan_tamus.show', compact('rekapanTamu'));
-    }
+        if ($tipe === 'buku') {
+            $sheet->fromArray(['Nama', 'Instansi', 'Keperluan', 'Tanggal'], null, 'A1');
+            foreach ($data as $index => $row) {
+                $sheet->fromArray([
+                    $row->nama,
+                    $row->instansi,
+                    $row->keperluan,
+                    $row->created_at->format('Y-m-d'),
+                ], null, 'A' . ($index + 2));
+            }
+        } else {
+            $sheet->fromArray(['Nama', 'Instansi', 'Keperluan', 'No HP', 'Tanggal', 'Permasalahan', 'Tanggapan', 'Status'], null, 'A1');
+            foreach ($data as $index => $row) {
+                $sheet->fromArray([
+                    optional($row->bukuTamu)->nama,
+                    optional($row->bukuTamu)->instansi,
+                    optional($row->bukuTamu)->keperluan,
+                    optional($row->bukuTamu)->no_hp,
+                    $row->created_at->format('Y-m-d'),
+                    $row->permasalahan,
+                    $row->tanggapan,
+                    $row->status,
+                ], null, 'A' . ($index + 2));
+            }
+        }
 
-    /**
-     * Menampilkan form untuk mengedit rekapan tamu.
-     */
-    public function edit(RekapanTamu $rekapanTamu)
-    {
-        $bukuTamus = BukuTamu::all();
-        $biodataTamus = BiodataTamu::all();
-        return view('rekapan_tamus.edit', compact('rekapanTamu', 'bukuTamus', 'biodataTamus'));
-    }
+        $filename = $filenameInput ?: 'rekapan_' . $tipe . '_tamu.xlsx';
+        $tempPath = tempnam(sys_get_temp_dir(), $filename);
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
 
-    /**
-     * Mengupdate data rekapan tamu.
-     */
-    public function update(Request $request, RekapanTamu $rekapanTamu)
-    {
-        $request->validate([
-            'buku_tamu_id' => 'required|exists:buku_tamus,id',
-            'biodata_tamu_id' => 'required|exists:biodata_tamus,id',
-            'tanggal_kunjungan' => 'required|date',
-            'status' => 'required|in:Belum Selesai,Proses,Selesai',
-        ]);
-
-        $rekapanTamu->update($request->all());
-
-        return redirect()->route('rekapan-tamus.index')->with('success', 'Rekapan tamu berhasil diperbarui.');
-    }
-
-    /**
-     * Menghapus rekapan tamu dari database.
-     */
-    public function destroy(RekapanTamu $rekapanTamu)
-    {
-        $rekapanTamu->delete();
-        return redirect()->route('rekapan-tamus.index')->with('success', 'Rekapan tamu berhasil dihapus.');
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 }
