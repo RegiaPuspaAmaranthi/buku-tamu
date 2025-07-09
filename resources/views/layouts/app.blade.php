@@ -2,56 +2,25 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Buku Tamu')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/app-style.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="#">BPMP NTB</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    @guest
-                        <!-- Tampil jika belum login -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('buku-tamus.create') }}">Isi Buku Tamu</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">Login</a>
-                        </li>
-                    @else
-                        <!-- Tampil jika admin login -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('buku-tamus.index') }}">Data Tamu</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('biodata-tamus.index') }}">Biodata Tamu</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('rekapan.index') }}">Rekapan Tamu</a>
-                        </li> 
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                Logout
-                            </a>
-                        </li>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
-                    @endguest
-                </ul>
-            </div>
+<body style="background-color: #f4f8fb">
+    <nav class="navbar navbar-light bg-white border-bottom shadow-sm mb-4">
+        <div class="container d-flex align-items-center">
+            <img src="{{ asset('assets/image/logo.png') }}" alt="Logo" height="55">
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <main class="container pb-5">
         @yield('content')
-    </div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
 </body>
 </html>

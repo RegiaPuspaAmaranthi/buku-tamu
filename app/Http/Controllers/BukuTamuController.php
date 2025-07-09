@@ -12,11 +12,38 @@ class BukuTamuController extends Controller
      * Menampilkan daftar tamu.
      */
     // Menampilkan daftar tamu (untuk admin)
-    public function index()
+    public function index(Request $request)
     {
-        $bukuTamus = BukuTamu::latest()->get();
-        return view('admin.dashboard', compact('bukuTamus'));
+        $query = BukuTamu::query();
+
+        // Filter pencarian (nama, instansi, keperluan)
+        if ($request->filled('cari')) {
+            $query->where(function($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->cari . '%')
+                ->orWhere('instansi', 'like', '%' . $request->cari . '%')
+                ->orWhere('keperluan', 'like', '%' . $request->cari . '%');
+            });
+        }
+
+        // Filter berdasarkan bulan dan tahun (input type="month")
+        if ($request->filled('bulan')) {
+            $bulan = $request->bulan;
+            try {
+                $tanggal = Carbon::createFromFormat('Y-m', $bulan);
+                $query->whereMonth('tanggal', $tanggal->month)
+                    ->whereYear('tanggal', $tanggal->year);
+            } catch (\Exception $e) {
+                // Format salah, abaikan filter bulan
+            }
+        }
+
+        // Pagination dan sorting
+        $bukuTamus = $query->orderBy('tanggal', 'desc')->paginate(10)->withQueryString();
+
+        return view('bukutamu.index', compact('bukuTamus'));
     }
+
+
 
 
     /**
@@ -25,9 +52,9 @@ class BukuTamuController extends Controller
     public function create()
     {
         $statistik = [
-            'hari_ini' => BukuTamu::whereDate('created_at', Carbon::today())->count(),
-            'kemarin' => BukuTamu::whereDate('created_at', Carbon::yesterday())->count(),
-            'bulan_ini' => BukuTamu::whereMonth('created_at', Carbon::now()->month)->count(),
+            'hari_ini' => BukuTamu::whereDate('tanggal', Carbon::today())->count(),
+            'kemarin' => BukuTamu::whereDate('tanggal', Carbon::yesterday())->count(),
+            'bulan_ini' => BukuTamu::whereMonth('tanggal', Carbon::now()->month)->count(),
             'total' => BukuTamu::count()
         ];
 
@@ -43,7 +70,7 @@ class BukuTamuController extends Controller
             'nama' => 'required|string|max:255',
             'instansi' => 'nullable|string|max:255',
             'keperluan' => 'required|string',
-            'nomor_telepon' => 'nullable|numeric|digits_between:10,15'
+            'no_hp' => 'nullable|numeric|digits_between:10,15'
         ]);
 
         BukuTamu::create($request->all());

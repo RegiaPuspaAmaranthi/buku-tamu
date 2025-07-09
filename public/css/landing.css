@@ -1,0 +1,60 @@
+/* landing.css */
+
+body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f5f9fc;
+}
+
+.landing-hero {
+    background: linear-gradient(to bottom, #e0f0ff, #ffffff);
+    padding: 60px 20px;
+    text-align: center;
+    animation: fadeIn 1s ease-in;
+}
+
+.landing-hero img {
+    width: 120px;
+    margin-bottom: 20px;
+}
+
+.landing-hero h1 {
+    font-size: 2.5rem;
+    color: #004085;
+    font-weight: bold;
+}
+
+.landing-hero p {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.btn-isi {
+    font-size: 1.1rem;
+    padding: 12px 30px;
+    border-radius: 50px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slider */
+.carousel-inner img {
+    max-height: 500px;
+    object-fit: cover;
+}
+
+/* Footer */
+.footer {
+    font-size: 14px;
+    color: #777;
+    background-color: #004085;
+}

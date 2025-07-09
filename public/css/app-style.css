@@ -1,0 +1,19 @@
+body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f4f9ff;
+}
+
+.navbar-brand span {
+    font-size: 1.25rem;
+}
+
+.hero-section {
+    background: linear-gradient(to bottom, #007bff, #ffffff);
+    color: white;
+    padding: 80px 20px;
+}
+
+.carousel-inner img {
+    max-height: 400px;
+    object-fit: cover;
+}

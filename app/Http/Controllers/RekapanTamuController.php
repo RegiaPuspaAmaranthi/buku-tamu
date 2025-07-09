@@ -7,6 +7,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Models\BukuTamu;
 use App\Models\BiodataTamu;
+use Illuminate\Database\Eloquent\Builder;
 
 class RekapanTamuController extends Controller
 {
@@ -20,18 +21,25 @@ class RekapanTamuController extends Controller
 
         if ($tipe === 'buku') {
             $query = BukuTamu::query();
-        } else {
-            $query = BiodataTamu::with('bukuTamu');
-        }
+            if ($tanggalAwal && $tanggalAkhir) {
+                $query->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+            }
+            $data = $query->get();
+        } elseif ($tipe === 'biodata') {
+            $query = BiodataTamu::with(['bukuTamu' => function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                if ($tanggalAwal && $tanggalAkhir) {
+                    $q->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+                }
+            }]);
 
-        if ($tanggalAwal && $tanggalAkhir) {
-            $query->whereBetween('created_at', [$tanggalAwal, $tanggalAkhir]);
+            $data = $query->get()->filter(function ($item) {
+                return $item->bukuTamu !== null;
+            });
         }
-
-        $data = $query->get();
 
         return view('rekapan.index', compact('data', 'tipe', 'tanggalAwal', 'tanggalAkhir'));
     }
+
 
     public function export(Request $request)
     {
@@ -42,39 +50,46 @@ class RekapanTamuController extends Controller
 
         if ($tipe === 'buku') {
             $query = BukuTamu::query();
+            if ($tanggalAwal && $tanggalAkhir) {
+                $query->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+            }
+            $data = $query->latest('tanggal')->get();
         } elseif ($tipe === 'biodata') {
             $query = BiodataTamu::with('bukuTamu');
+            if ($tanggalAwal && $tanggalAkhir) {
+                $query->whereHas('bukuTamu', function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                    $q->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+                });
+            }
+            $data = $query->latest()->get();
         } else {
             return back()->with('error', 'Tipe data tidak valid.');
         }
 
-        if ($tanggalAwal && $tanggalAkhir) {
-            $query->whereBetween('created_at', [$tanggalAwal, $tanggalAkhir]);
-        }
-
-        $data = $query->get();
+        // Buat Spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
         if ($tipe === 'buku') {
-            $sheet->fromArray(['Nama', 'Instansi', 'Keperluan', 'Tanggal'], null, 'A1');
+            $sheet->fromArray(['Nama', 'Instansi', 'Nomor HP', 'Keperluan', 'Tanggal'], null, 'A1');
             foreach ($data as $index => $row) {
                 $sheet->fromArray([
                     $row->nama,
                     $row->instansi,
+                    $row->no_hp,
                     $row->keperluan,
-                    $row->created_at->format('Y-m-d'),
+                    $row->tanggal->format('d-m-Y'),
                 ], null, 'A' . ($index + 2));
             }
         } else {
-            $sheet->fromArray(['Nama', 'Instansi', 'Keperluan', 'No HP', 'Tanggal', 'Permasalahan', 'Tanggapan', 'Status'], null, 'A1');
+            $sheet->fromArray(['Nama', 'Instansi', 'Nomor HP', 'Keperluan', 'Tanggal', 'Permasalahan', 'Tanggapan', 'Status'], null, 'A1');
             foreach ($data as $index => $row) {
                 $sheet->fromArray([
                     optional($row->bukuTamu)->nama,
                     optional($row->bukuTamu)->instansi,
-                    optional($row->bukuTamu)->keperluan,
                     optional($row->bukuTamu)->no_hp,
-                    $row->created_at->format('Y-m-d'),
+                    optional($row->bukuTamu)->keperluan,
+                    optional($row->bukuTamu)->tanggal ? $row->bukuTamu->tanggal->format('d-m-Y') : '',
                     $row->permasalahan,
                     $row->tanggapan,
                     $row->status,
@@ -89,4 +104,5 @@ class RekapanTamuController extends Controller
 
         return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
+
 }

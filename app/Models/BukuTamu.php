@@ -14,7 +14,7 @@ class BukuTamu extends Model
     protected $fillable = ['nama', 'instansi', 'keperluan', 'tanggal', 'no_hp'];
 
     protected $casts = [
-        'tanggal' => 'datetime',
+        'tanggal' => 'date',
     ];
 
     public function biodata()

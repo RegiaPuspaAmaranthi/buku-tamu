@@ -5,18 +5,43 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\BiodataTamu;
 use App\Models\BukuTamu;
+use Illuminate\Support\Facades\DB;
 
 class BiodataTamuController extends Controller
 {
     /**
      * Menampilkan daftar biodata tamu.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil semua tamu, termasuk relasi ke biodata jika ada
-        $bukuTamus = BukuTamu::with('biodata')->latest()->get();
-        return view('biodata_tamus.index', compact('bukuTamus'));
+        $query = DB::table('buku_tamus')
+            ->leftJoin('biodata_tamus', 'buku_tamus.id', '=', 'biodata_tamus.buku_tamu_id')
+            ->select(
+                'buku_tamus.*',
+                'biodata_tamus.id as biodata_id',
+                'biodata_tamus.permasalahan',
+                'biodata_tamus.tanggapan',
+                'biodata_tamus.status'
+            );
+
+        if ($request->filled('cari')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('buku_tamus.nama', 'like', "%{$request->cari}%")
+                ->orWhere('buku_tamus.instansi', 'like', "%{$request->cari}%")
+                ->orWhere('buku_tamus.keperluan', 'like', "%{$request->cari}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('biodata_tamus.status', $request->status);
+        }
+
+        $biodataTamus = $query->orderBy('buku_tamus.tanggal', 'desc')->paginate(10)->withQueryString();
+
+        return view('biodata_tamus.index', compact('biodataTamus'));
     }
+
+
 
 
     /**

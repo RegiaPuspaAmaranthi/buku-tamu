@@ -1,0 +1,72 @@
+/* Global body style */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background-color: #f1f7f9;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    background-color: #07326a;
+    color: white;
+    width: 240px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    display: block;
+    width: 100%;
+    max-width: 120px;
+    margin: 0 auto 30px;
+}
+
+.sidebar a {
+    color: #ffffff;
+    padding: 10px 16px;
+    display: block;
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+    background-color: #064089;
+    font-weight: bold;
+}
+
+/* Main Content next to fixed sidebar */
+.main-content {
+    margin-left: 240px; /* equal to sidebar width */
+    padding: 2rem;
+}
+
+/* Toggle Sidebar (disembunyikan) */
+.sidebar.collapsed {
+    margin-left: -240px;
+    transition: margin 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 0;
+    transition: margin 0.3s ease;
+}
+
+/* Tombol toggle sidebar */
+.toggle-sidebar-btn {
+    background: none;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    color: #07326a;
+}

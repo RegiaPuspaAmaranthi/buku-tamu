@@ -20,7 +20,7 @@ class AuthController extends Controller
     ]);
 
     if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
-        return redirect()->route('buku-tamus.index')->with('success', 'Login berhasil');
+        return redirect()->route('dashboard')->with('success', 'Login berhasil');
     }
 
     return back()->withErrors(['loginError' => 'Username atau password salah']);

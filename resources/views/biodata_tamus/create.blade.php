@@ -17,7 +17,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Instansi</label>
+            <label class="form-label">Instansi/Alamat</label>
             <input type="text" class="form-control" value="{{ $bukuTamu->instansi }}" disabled>
         </div>
 
